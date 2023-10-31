@@ -1025,14 +1025,3 @@ def get_openai(openai_api_key):
         openai.api_base = proxy
     return openai
 
-
-
-
-@csrf_exempt
-def upload_image(request):
-    if request.method == 'POST' and request.FILES.get('image'):
-        image = request.FILES['image']
-        file_path = default_storage.save('uploads/' + image.name, image)
-        file_url = default_storage.url(file_path)
-        return JsonResponse({'url': file_url})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
