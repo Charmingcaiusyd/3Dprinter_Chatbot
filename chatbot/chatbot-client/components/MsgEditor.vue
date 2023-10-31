@@ -1,5 +1,6 @@
 <script setup>
 import { isMobile } from 'is-mobile'
+import axios from 'axios'
 const { $i18n } = useNuxtApp()
 
 const props = defineProps({
@@ -20,6 +21,7 @@ const props = defineProps({
 const message = ref('')
 const rows = ref(1)
 const autoGrow = ref(true)
+const file = ref(null)
 
 const hint = computed(() => {
   return isMobile() ? '' : $i18n.t('pressEnterToSendYourMessageOrShiftEnterToAddANewLine')
@@ -35,6 +37,45 @@ watchEffect(() => {
     autoGrow.value = true
   }
 })
+
+const uploadImage = async (file) => {
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('image', file)
+
+  try {
+    const response = await axios.post('/api/upload_image/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    if (response.data && response.data.url) {
+      message.value += `\n![Image](${response.data.url})`
+    }
+  } catch (error) {
+    console.error('Image upload failed:', error)
+  }
+}
+
+const handleDrop = async (event) => {
+  const file = event.dataTransfer.files[0]
+  if (file && file.type.startsWith('image/')) {
+    await uploadImage(file)
+  }
+}
+
+const handlePaste = async (event) => {
+  const items = event.clipboardData.items
+  for (const item of items) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      await uploadImage(file)
+      return
+    }
+  }
+}
 
 const send = () => {
   let msg = message.value
@@ -108,36 +149,6 @@ const docDialogCtl = ref({
   <div
       class="flex-grow-1 d-flex align-center justify-space-between"
   >
-    <!-- <v-btn
-      title="Tools"
-      :icon="getToolIcon()"
-      density="compact"
-      size="default"
-      class="mr-3"
-      id="tools_btn"
-    >
-    </v-btn> -->
-    <!-- <v-menu
-      activator="#tools_btn"
-      open-on-hover
-    >
-      <v-list density="compact">
-        <v-list-item
-          v-for="(item, index) in toolSelector.list"
-          :key="index"
-          :prepend-icon="item.icon"
-          @click="selectTool(index)"
-        >
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item
-          prepend-icon="article"
-          @click="docDialogCtl.dialog = true"
-        >
-          Documents
-        </v-list-item>
-      </v-list>
-    </v-menu> -->
     <v-textarea
         ref="textArea"
         v-model="message"
@@ -153,6 +164,8 @@ const docDialogCtl = ref({
         variant="outlined"
         class="userinputmsg"
         @keydown.enter.exact="enterOnly"
+        @drop.prevent="handleDrop"
+        @paste.prevent="handlePaste"
     ></v-textarea>
     <v-btn
         :disabled="loading"

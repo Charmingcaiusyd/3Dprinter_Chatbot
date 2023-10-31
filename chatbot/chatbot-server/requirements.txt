@@ -72,3 +72,8 @@ wrapt==1.15.0
 yarl==1.9.2
 docx2txt==0.8
 chromadb==0.4.10
+Pillow==10.0.1
+torch==2.1.0
+matplotlib==3.7.3
+gdown==4.7.1
+ultralytics==8.0.203

@@ -17,7 +17,10 @@ from stats.models import TokenUsage
 from .models import Conversation, Message, EmbeddingDocument, Setting, Prompt
 from django.conf import settings
 from django.http import StreamingHttpResponse
+from django.http import JsonResponse
 from django.forms.models import model_to_dict
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -1021,3 +1024,15 @@ def get_openai(openai_api_key):
     if proxy:
         openai.api_base = proxy
     return openai
+
+
+
+
+@csrf_exempt
+def upload_image(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        image = request.FILES['image']
+        file_path = default_storage.save('uploads/' + image.name, image)
+        file_url = default_storage.url(file_path)
+        return JsonResponse({'url': file_url})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
