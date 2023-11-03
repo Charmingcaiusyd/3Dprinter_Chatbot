@@ -12,7 +12,7 @@ services:
     depends_on:
       - backend-web-server
     ports:
-      - '${CLIENT_PORT:-80}:80'
+      - '${CLIENT_PORT:-800}:80'
     networks:
       - chatgpt_ui_network
     restart: always
@@ -40,7 +40,6 @@ services:
 #      - EMAIL_FROM=no-reply@example.com  #Default sender email address
     volumes:
       - ./db.sqlite3:/app/db.sqlite3
-      - ../database:/app/database
     ports:
       - '${WSGI_PORT:-8000}:8000'
     networks:

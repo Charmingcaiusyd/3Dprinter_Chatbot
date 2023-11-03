@@ -69,3 +69,13 @@ docker-compose up
 
 
 输入 `http://localhost:9000/admin` 进入管理面板，使用上述管理员密码即可。
+
+
+
+
+Service Name	       Local Machine Port	Docker Service     Nginx
+wsgi-server	           8000	                8000	      
+web-server	           9000	                80	            
+client	               CLIENT_PORT (800)	80	               Nginx 80/443 
+backend-wsgi-server	   WSGI_PORT (8000)	    8000	     
+backend-web-server	   SERVER_PORT (9000)	80	         
