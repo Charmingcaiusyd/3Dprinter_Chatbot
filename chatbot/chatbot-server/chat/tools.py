@@ -8,6 +8,7 @@ import json
 import logging
 import hashlib
 from typing import Any, Dict, List, Optional
+from typing import Union, List, Optional
 
 import arxiv
 from langchain.schema import Document
@@ -40,7 +41,7 @@ def _hacky_hash(some_string):
 
 def _arxiv_load(
     query: Optional[str] ='',
-    id_list: Optional[str|List[str]] = [],
+    id_list: Optional[Union[str, List[str]]] = [],
     max_results: int = 2,
     sort_by: Optional[Any] = arxiv.SortCriterion.Relevance,
     papers_dir: Optional[str] = ".papers",

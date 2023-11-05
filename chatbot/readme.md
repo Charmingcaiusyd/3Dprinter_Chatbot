@@ -28,6 +28,9 @@ docker build -t chatbot:latest .
 如果遇到依赖问题，使用如下命令安装依赖
 
 ```bash
+nvm install 18.0.0
+nvm use 18.0.0
+node -v
 yarn install
 ```
 

@@ -30,16 +30,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-__9p!i2^udts*l==hl)+6=!fi872f3ec(n%(^f-!6i$o5+7#ar"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", False) == "False"
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
 app_domains = os.getenv("APP_DOMAIN", "localhost:9000").split(",")
-CSRF_TRUSTED_ORIGINS = []
-for app_domain in app_domains:
-    CSRF_TRUSTED_ORIGINS.append("http://" + app_domain)
-    CSRF_TRUSTED_ORIGINS.append("https://" + app_domain)
 
+# Initialize CSRF_TRUSTED_ORIGINS with proper schemes only
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost", 
+    "http://3dprinter.quest", 
+    "https://3dprinter.quest", 
+    "http://www.3dprinter.quest", 
+    "https://www.3dprinter.quest", 
+    "http://112.213.35.147", 
+    "https://112.213.35.147"
+]
+for app_domain in app_domains:
+    CSRF_TRUSTED_ORIGINS.append(f"http://{app_domain}")
+    CSRF_TRUSTED_ORIGINS.append(f"https://{app_domain}")
 
 # Application definition
 
@@ -136,9 +145,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
-
-STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
+# STATIC_ROOT = '/var/www/chatbot-static'
+STATIC_ROOT = '/root/Chatbotv2.0/chatbot-server/static'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

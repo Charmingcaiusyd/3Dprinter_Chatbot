@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import gdown
 import json
-from .models import ChatSession
 import uuid
+from .models import ChatSession
 
 def download_model(file_id, model_path):
     url = f'https://drive.google.com/uc?id={file_id}'
@@ -26,7 +26,7 @@ def get_or_download_model(model_folder, model_name):
             download_model("1KwP_Uzsb5E5IrS6eIAlMIdMwsA96T2NU", model_path)
     return YOLO(model_path)
 
-def analyze_image(image, session_id):
+def analyze_image(image, session_id=None):
     model_folder = "models/"
     model_m = get_or_download_model(model_folder, "yolov8m.pt")
     model_n = get_or_download_model(model_folder, "yolov8n.pt")
@@ -95,11 +95,16 @@ def analyze_image(image, session_id):
         'total_boxes': len(unique_boxes),
         'yolo_output': json.dumps(boxes_info, indent=4)
     }
+    # Create a user-friendly message from the YOLO results
+    message_content = "I've analyzed the image. Here are the results:\n"
+    for box_info in boxes_info:
+        message_content += f"Object: {box_info['class']} at {box_info['coordinates']}\n"
 
-    chat_session = ChatSession.objects.get(id=session_id)
-    chat_session.yolo_output = json.dumps(response_data['boxes_info'])
+    #  保存记录 & 保存文件
+    # Get or create a chat session
+    chat_session, created = ChatSession.objects.get_or_create(id=session_id)
+    chat_session.images.add(result_image_path)  # Assuming there is a field to store images
     chat_session.save()
-
     return response_data, result_image_path
 
 @csrf_exempt
