@@ -95,40 +95,40 @@ def analyze_image(image, session_id=None):
         'total_boxes': len(unique_boxes),
         'yolo_output': json.dumps(boxes_info, indent=4)
     }
-    # Create a user-friendly message from the YOLO results
-    message_content = "I've analyzed the image. Here are the results:\n"
-    for box_info in boxes_info:
-        message_content += f"Object: {box_info['class']} at {box_info['coordinates']}\n"
-
-    #  保存记录 & 保存文件
-    # Get or create a chat session
-    chat_session, created = ChatSession.objects.get_or_create(id=session_id)
-    chat_session.images.add(result_image_path)  # Assuming there is a field to store images
-    chat_session.save()
+    
     return response_data, result_image_path
 
 @csrf_exempt
 def upload_image(request, session_id):
     if request.method == 'POST' and request.FILES.get('image'):
         try:
+            # 保存上传的图片
             image = request.FILES['image']
             file_path = default_storage.save('uploads/' + image.name, image)
             file_url = default_storage.url(file_path)
 
+            # 分析图片并获取YOLO结果
             yolo_result, result_image_path = analyze_image(image, session_id)
 
+            # 构建响应数据
             response_data = {
                 'url': file_url,
                 'result_image_url': default_storage.url(result_image_path),
                 'yolo_output': yolo_result['yolo_output']
             }
 
-            chat_session = ChatSession.objects.get(id=session_id)
+            # 获取或创建聊天会话
+            chat_session, created = ChatSession.objects.get_or_create(id=session_id)
+            # 创建消息并将YOLO结果添加到聊天会话
             message_content = "I've analyzed the image. Here are the results:\n" + yolo_result['yolo_output']
             chat_session.messages.create(content=message_content, sender='bot', image=result_image_path)
             chat_session.save()
 
+            # 返回JSON响应
             return JsonResponse(response_data, status=200)
         except Exception as e:
+            # 异常处理
             return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    else:
+        # 如果请求无效，返回错误
+        return JsonResponse({'error': 'Invalid request'}, status=400)

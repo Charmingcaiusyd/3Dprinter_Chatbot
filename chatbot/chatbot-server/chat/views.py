@@ -402,6 +402,7 @@ def conversation(request):
     # model_name = request.data.get("name")
     model_name = get_model_name()
     message_object_list = request.data.get("message")
+    image = request.FILES.get('image')    #新增图像功能
     conversation_id = request.data.get("conversationId")
     request_max_response_tokens = request.data.get("max_tokens")
     system_content = request.data.get("system_content")
@@ -453,9 +454,24 @@ def conversation(request):
     model = get_current_model(model_name, request_max_response_tokens)
     llm_openai_model(model)
 
+
+    text_from_image = ""
+    if image:
+        image_name = default_storage.save(image.name, ContentFile(image.read()))
+        image_url = default_storage.url(image_name)
+        # 使用 image_predict.py 中的函数处理图片并提取文字
+        text_from_image = predict_image(image_url)
+        # 将提取的文字作为用户的输入添加到对话历史中
+        message_object_list.append({
+            "content": text_from_image,
+            "message_type": 0,  # 假设 0 是普通消息类型
+            "tool": None,
+            "tool_args": None
+        })
     try:
         messages = build_messages(
             model,
+            image_url    # 新增图片URL
             request.user,
             conversation_id,
             message_object_list,

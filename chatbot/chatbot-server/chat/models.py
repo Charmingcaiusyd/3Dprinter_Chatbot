@@ -30,6 +30,7 @@ class Message(models.Model):
     embedding_message_doc = models.ForeignKey(
         EmbeddingDocument, on_delete=models.CASCADE, null=True, blank=True
     )
+    image_url = models.URLField(null=True, blank=True)  # 新增功能 添加图片URL字段
     created_at = models.DateTimeField(auto_now_add=True)
 
     plain_message_type = 0
