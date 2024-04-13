@@ -1,7 +1,9 @@
 FROM python:3.10-slim as wsgi-server
 
-RUN apt update \
-    && apt install -y --no-install-recommends python3-dev default-libmysqlclient-dev build-essential libpq-dev dos2unix libgl1-mesa-glx libglib2.0-0\
+RUN apt update && apt install -y --no-install-recommends \
+    python3-dev default-libmysqlclient-dev build-essential libpq-dev \
+    dos2unix libgl1-mesa-glx libglib2.0-0 pkg-config libcairo2-dev \
+    libsystemd-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV DJANGO_SUPERUSER_USERNAME=admin
@@ -10,14 +12,19 @@ ENV DJANGO_SUPERUSER_EMAIL=admin@example.com
 
 COPY requirements.txt ./
 
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+RUN pip install --no-cache-dir --default-timeout=100 -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 WORKDIR /app
 
 COPY . .
 
-RUN python manage.py check --deploy \
-    && python manage.py collectstatic --no-input \
+
+RUN /bin/sh -c python manage.py makemigrations monitor
+RUN /bin/sh -c python manage.py migrate monitor
+
+
+RUN /bin/sh -c python manage.py check --deploy \
+    && /bin/sh -c python manage.py collectstatic --no-input \
     && dos2unix entrypoint.sh \
     && chmod +x entrypoint.sh
 

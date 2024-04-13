@@ -33,12 +33,49 @@ const props = defineProps({
   }
 })
 
+function filterMarkedContent(message) {
+  const startMarker = "<@>";
+  const endMarker = "@<>";
+  let startIndex = message.indexOf(startMarker);
+  let endIndex = message.indexOf(endMarker, startIndex + startMarker.length);
+  
+  console.log("Initial message:", message); // Debug: Print the initial message
+
+  // While both markers are found in the message, keep filtering.
+  while (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+    const partToRemove = message.substring(startIndex, endIndex + endMarker.length);
+    console.log("Part to remove:", partToRemove); // Debug: Print the part that will be removed
+    message = message.replace(partToRemove, '');
+    console.log("Updated message:", message); // Debug: Print the message after removal
+
+    // Update the indices for the next occurrence
+    startIndex = message.indexOf(startMarker);
+    endIndex = message.indexOf(endMarker, startIndex + startMarker.length);
+  }
+
+  console.log("Final filtered message:", message); // Debug: Print the final filtered message
+  return message;
+}
+
+
 const contentHtml = ref('')
 
 const contentElm = ref(null)
 
 watchEffect(async () => {
-  contentHtml.value = props.message.message ? md.render(props.message.message) : ''
+
+  // Assuming props.message actually contains the message text you want to filter and display
+  if (props.message.message) {
+    console.log("Original Message:", props.message.message); // Debug: Print the original message
+
+    let filteredContent = filterMarkedContent(props.message.message);
+    console.log("Filtered Content:", filteredContent); // Debug: Print the filtered content
+
+    contentHtml.value = md.render(filteredContent);
+    console.log("Rendered HTML:", contentHtml.value); // Debug: Print the rendered HTML
+  } else {
+    contentHtml.value = '';
+  }
   await nextTick()
   bindCopyCodeToButtons()
 })
@@ -51,7 +88,11 @@ const bindCopyCodeToButtons = () => {
     const copyButton = codeContainer.querySelector('.hljs-copy-button');
     const codeBody = codeContainer.querySelector('code');
     copyButton.onclick = function () {
-      copy(codeBody.textContent ?? '');
+      
+      // Filter the content but don't overwrite the original display
+      const filteredContent = filterMarkedContent(codeBody.textContent ?? '');
+      // Use the filtered content for copying
+      copy(filteredContent);
 
       copyButton.innerHTML = "Copied!";
       copyButton.dataset.copied = 'true';

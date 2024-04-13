@@ -32,12 +32,12 @@ const showSnackbar = (text) => {
 }
 
 const copyMessage = () => {
-  copy(props.message.message)
-  showSnackbar('Copied!')
+  copy(props.message.message);
+  showSnackbar('Copied!');
 }
 
 const editMessage = () => {
-  props.usePrompt(props.message.message)
+  props.usePrompt(props.message.message);
 }
 
 const deleteMessage = async () => {

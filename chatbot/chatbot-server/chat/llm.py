@@ -66,7 +66,7 @@ openai_env = {
 }
 
 openai_model = {
-    "name": "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1",
+    "name": "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5",
     "max_tokens": 4096,
     "max_prompt_tokens": 3096,
     "max_response_tokens": 1000,

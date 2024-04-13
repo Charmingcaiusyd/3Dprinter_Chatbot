@@ -114,7 +114,7 @@ const fetchReply = async (message) => {
       async onmessage(message) {
         const event = message.event
         const data = JSON.parse(message.data)
-
+        console.log("Received message:", message);
         if (event === 'error') {
           abortFetch()
           showSnackbar(data.error)
@@ -140,6 +140,7 @@ const fetchReply = async (message) => {
         }
 
         messageQueue.push(data.content)
+        console.log("Message added to queue:", data.content);
         processMessageQueue()
 
         scrollChatWindow()

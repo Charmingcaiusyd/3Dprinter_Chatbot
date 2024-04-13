@@ -9,7 +9,7 @@ import logging
 import hashlib
 from typing import Any, Dict, List, Optional
 from typing import Union, List, Optional
-
+from typing import List, Union, Optional
 import arxiv
 from langchain.schema import Document
 from .models import Conversation, Message, Setting, Prompt, EmbeddingDocument

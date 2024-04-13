@@ -59,6 +59,21 @@ onActivated(async () => {
   }
 })
 
+const redirectToMonitoringSystem = async () => {
+  try {
+    // 发送请求到后端，并获取响应
+    const response = await fetch('/api/monitor/login', {
+      method: 'GET', 
+      headers: {
+        'Accept': 'text/html',
+      },
+    });
+    window.location.href = 'https://3dprinter.quest/api/monitor/login';
+  } catch (error) {
+    console.error('Error during redirection to the monitoring system:', error);
+  }
+};
+
 </script>
 
 <template>
@@ -69,12 +84,32 @@ onActivated(async () => {
 
     <v-spacer></v-spacer>
 
+
+    <v-btn
+      :title="$t('monitoringsystem')"
+      @click="redirectToMonitoringSystem"
+      class="d-md-none ma-3"
+      style="display: flex; justify-content: center; align-items: center;"
+    >
+      <v-icon style="transform: translateX(25px);">monitoring</v-icon>
+    </v-btn>
+    
+    <v-btn
+      variant="outlined"
+      class="text-none d-none d-md-block"
+      @click="redirectToMonitoringSystem"
+      style="margin-right: 50px;"
+    >
+      {{ $t('monitoringsystem') }}
+    </v-btn>
+
     <v-btn
         :title="$t('newConversation')"
         icon="add"
         @click="createNewConversation"
         class="d-md-none ma-3"
     ></v-btn>
+
     <v-btn
         variant="outlined"
         class="text-none d-none d-md-block"

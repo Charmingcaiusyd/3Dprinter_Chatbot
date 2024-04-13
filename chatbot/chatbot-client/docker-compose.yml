@@ -21,7 +21,7 @@ services:
     image: chatbot-wsgi-server:latest
     environment:
       - OPENAI_API_PROXY=https://api.openai-proxy.com/v1 # 注意，域名后面需要带上 v1
-      - FT_MODEL_NAME=ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1
+      - FT_MODEL_NAME=ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5
       - DEBUG=${DEBUG:-False} # Whether to enable debug mode, default False
       - APP_DOMAIN=${APP_DOMAIN:-localhost:9000}
       - SERVER_WORKERS=3 # The number of worker processes for handling requests.

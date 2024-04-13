@@ -1,5 +1,11 @@
 #!/bin/bash
 
+python manage.py makemigrations monitor
+
+python manage.py migrate monitor
+
+python manage.py makemigrations 
+
 python manage.py migrate
 
 python manage.py createsuperuser --no-input

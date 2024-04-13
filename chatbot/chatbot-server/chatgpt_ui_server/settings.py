@@ -67,16 +67,18 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "django_apscheduler",
     "chat.apps.ChatConfig",
     "stats.apps.StatsConfig",
     "provider.apps.ProviderConfig",
+    "monitor.apps.MonitorConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -133,9 +135,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = "UTC"
+TIME_ZONE = 'Australia/Sydney'
 
 USE_I18N = True
 
@@ -148,6 +150,8 @@ USE_TZ = True
 # STATIC_ROOT = '/var/www/chatbot-static'
 STATIC_ROOT = '/root/Chatbotv2.0/chatbot-server/static'
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -167,6 +171,12 @@ REST_FRAMEWORK = {
 
 SITE_ID = 1
 
+TWILIO_ACCOUNT_SID = 'AC02ad82b48fec1f7ad26c2cc24dcd2e86'
+TWILIO_AUTH_TOKEN = '9ed2ab3de2ac7b0654be74f77c636255'
+SENDGRID_API_KEY = '28e71e7adfaae283618d6b0c3dcf44b5-us21'
+POSTMARK_SERVER_TOKEN = '6ebeb8f5-88f5-4fbf-95e7-84e39e313079'
+
+
 REST_AUTH = {
     "USE_JWT": True,
     "TOKEN_MODEL": None,
@@ -180,14 +190,17 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
 }
 
+"""
 # Allauth settings
 ACCOUNT_ADAPTER = "account.allauth.AccountAdapter"
 ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "optional")
+
 
 # Email settings
 EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )
+
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.mailgun.org")
 EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
@@ -195,6 +208,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", True) == "True"
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False) == "True"
 DEFAULT_FROM_EMAIL = os.getenv("EMAIL_FROM", "webmaster@localhost")
+"""
 
 
 # Chroma Sqlite

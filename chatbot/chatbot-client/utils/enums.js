@@ -5,8 +5,8 @@ export const STORAGE_KEY = {
 };
 
 export const MODELS = {
-  "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1": {
-    name: "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1",
+  "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5": {
+    name: "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5",
     frequency_penalty: 0.0,
     presence_penalty: 0.0,
     total_tokens: 4096,
@@ -17,4 +17,4 @@ export const MODELS = {
 };
 
 export const DEFAULT_MODEL_NAME =
-  "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1";
+  "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5";

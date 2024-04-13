@@ -8,7 +8,6 @@ class ChatConfig(AppConfig):
     name = "chat"
 
     def ready(self):
-        import chat.signals
 
         global document_query
         document_query = DocumentQuery()

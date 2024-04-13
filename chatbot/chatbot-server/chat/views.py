@@ -16,7 +16,7 @@ from provider.models import ApiKey
 from stats.models import TokenUsage
 from .models import Conversation, Message, EmbeddingDocument, Setting, Prompt
 from django.http import JsonResponse
-from .chat.image_predict import analyze_image
+from .image_predict import analyze_image
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.forms.models import model_to_dict
@@ -44,8 +44,21 @@ from .llm import get_embedding_document, unpick_faiss, langchain_doc_chat
 from .llm import setup_openai_env as llm_openai_env
 from .llm import setup_openai_model as llm_openai_model
 from .apps import document_query
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+import os
+
 
 logger = logging.getLogger(__name__)
+
+def generate_description(yolo_output):
+    # This function will transform the YOLO detection output into a descriptive text
+    descriptions = [f"a {obj['label']}" for obj in yolo_output['boxes_info']]
+    return 'I see ' + ', '.join(descriptions) + ' in the image.'
 
 
 class SettingViewSet(viewsets.ModelViewSet):
@@ -226,8 +239,8 @@ class EmbeddingDocumentViewSet(viewsets.ModelViewSet):
 
 
 MODELS = {
-    "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1": {
-        "name": "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1",
+    "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5": {
+        "name": "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5",
         "max_tokens": 4096,
         "max_prompt_tokens": 3096,
         "max_response_tokens": 1000,
@@ -399,10 +412,14 @@ def upload_conversations(request):
 # @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def conversation(request):
+
+    # Unique markers for the start and end of image description
+    start_marker = "<@>"
+    end_marker = "@<>"
+
     # model_name = request.data.get("name")
     model_name = get_model_name()
     message_object_list = request.data.get("message")
-    image = request.FILES.get('image')    #新增图像功能
     conversation_id = request.data.get("conversationId")
     request_max_response_tokens = request.data.get("max_tokens")
     system_content = request.data.get("system_content")
@@ -416,16 +433,76 @@ def conversation(request):
     openai_api_key = request.data.get("openaiApiKey")
     frugal_mode = request.data.get("frugalMode", False)
     database_mode = request.data.get("databaseMode", False)
-    print(request.data)
+    print("request.data",request.data)
 
     message_object = message_object_list[-1]
     message_type = message_object.get("message_type", 0)
+    # Extract image_url from the message object
+    image_url_original = message_object.get("url", None)  # Extract URL from within the message
     tool_name = message_object.get("tool", None)
     tool_args = message_object.get("tool_args", None)
     if tool_name:
         tool = {"name": tool_name, "args": tool_args}
     else:
         tool = None
+
+    # 先打印收到的内容
+    print("message_object:",message_object)
+    image_url=[]
+
+    # 这里就是要得到YOLO8的图片预测内容了
+    if image_url_original:
+        try:
+
+            class_mapping = {
+            0: "spaghetti",
+            1: "stringing",
+            2: "zits",
+            3: "Under-Extrusion",
+            4: "warping"
+            }
+            
+            # 分析图片并生成结构化描述
+            image_analysis = analyze_image(image_url_original)
+            
+            # 从分析结果中提取信息
+            image_info = image_analysis['image_info']
+            boxes_info = image_analysis['boxes_info']
+            total_boxes = image_analysis['total_boxes']
+            yolo_output = image_analysis['yolo_output']
+            image_url = image_analysis['image_url']
+
+            # 构建图片描述列表  
+            image_description = []
+            # image_description = [f"![Image](" + image_url_original + ")"]    # 在描述末尾添加图片信息和URL
+            image_description.append(f"Image size: {image_info['width']}x{image_info['height']}")
+            image_description.append(f"Total detected objects: {total_boxes}")
+            for box in boxes_info:
+                coords = box['coordinates']
+                label = box['label']
+                # Translate the class label to a human-readable class name
+                class_name = class_mapping.get(label, "Unknown")
+                image_description.append(f"Detected {class_name} (label: {label}) at {coords}")
+
+
+            image_description.append("You need to analyze all the image information I have provided and tell me what issues have arisen in the 3D printing image diagnostics. What are the problems, how many are there, and how severe are they? What are the ways to improve and modify these issues?")
+            image_description_str = start_marker + " ".join(image_description) + end_marker
+
+            # 将图片描述附加到最后一条消息内容上
+            original_content = message_object.get("content", "")
+            message_object["content"] = f"{original_content} {image_description_str}"        
+            print("Content:", image_description_str)
+            message_object_list[-1] = message_object
+            
+            print("message_object_list")
+            print(message_object_list)
+
+
+        except Exception as e:
+            # Handle the exception, possibly logging it and continuing
+            logger.error(f"Error processing image: {e}")
+            print(f"Error processing image: {e}")
+
 
     logger.debug(
         "conversation_id = %s message_objects = %s",
@@ -454,24 +531,9 @@ def conversation(request):
     model = get_current_model(model_name, request_max_response_tokens)
     llm_openai_model(model)
 
-
-    text_from_image = ""
-    if image:
-        image_name = default_storage.save(image.name, ContentFile(image.read()))
-        image_url = default_storage.url(image_name)
-        # 使用 image_predict.py 中的函数处理图片并提取文字
-        text_from_image = predict_image(image_url)
-        # 将提取的文字作为用户的输入添加到对话历史中
-        message_object_list.append({
-            "content": text_from_image,
-            "message_type": 0,  # 假设 0 是普通消息类型
-            "tool": None,
-            "tool_args": None
-        })
     try:
         messages = build_messages(
             model,
-            image_url    # 新增图片URL
             request.user,
             conversation_id,
             message_object_list,
@@ -543,6 +605,9 @@ def conversation(request):
 
         collected_events = []
         completion_text = ""
+
+        # Send the image URL first if it's present
+
         if messages["renew"]:  # return LLM answer
             # iterate through the stream of events
             for event in openai_response:
@@ -553,7 +618,11 @@ def conversation(request):
                 if "content" in event["choices"][0]["delta"]:
                     event_text = event["choices"][0]["delta"]["content"]
                     completion_text += event_text  # append the text
-                    yield sse_pack("message", {"content": event_text})
+                    # yield sse_pack("message", {"content": event_text})
+            
+            # 修改代码 发送完整回答
+            yield sse_pack("message", {"content": event_text})
+            
             bot_message_type = Message.plain_message_type
             ai_message_token = num_tokens_from_text(completion_text, model["name"])
         else:  # wait for process context
@@ -565,6 +634,11 @@ def conversation(request):
             bot_message_type = Message.temp_message_type
             ai_message_token = 0
 
+        if image_url:
+            completion_text += "\n\n![Image](" + image_url + ")\r\n"
+        yield sse_pack("message", {"content": completion_text})
+        print("completion_text")
+        print(completion_text)
         ai_message_obj = create_message(
             user=request.user,
             conversation_id=conversation_obj.id,
@@ -622,6 +696,7 @@ def conversation(request):
             return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
 
         completion_text = ""
+
         if messages["renew"]:  # if AI has read and replied this message
             for event in gen:
                 if event["status"] == "done":
@@ -639,7 +714,10 @@ def conversation(request):
                 completion_text = "Context added."
             yield sse_pack("message", {"content": completion_text})
             bot_message_type = Message.temp_message_type
-
+        
+        if image_url:
+            completion_text += "\n\n![Image](" + image_url + ")\r\n"
+            yield sse_pack("message", {"content": completion_text})
         logger.debug("return message is: %s", completion_text)
         ai_message_token = num_tokens_from_text(completion_text, model["name"])
         ai_message_obj = create_message(
@@ -750,6 +828,7 @@ def build_messages(
         }
         for msg in new_messages
     ]
+
 
     if frugal_mode:
         ordered_messages_list = ordered_messages_list[-1:]
@@ -931,9 +1010,9 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo"):
 
     if model == "gpt-3.5-turbo":
         print(
-            "Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613."
+            "Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106."
         )
-        return num_tokens_from_text(text, model="gpt-3.5-turbo-0613")
+        return num_tokens_from_text(text, model="gpt-3.5-turbo-1106")
     elif model == "gpt-3.5-turbo-16k":
         print(
             "Warning: gpt-3.5-turbo-16k may change over time. Returning num tokens assuming gpt-3.5-turbo-16k-0613."
@@ -951,7 +1030,7 @@ def num_tokens_from_text(text, model="gpt-3.5-turbo"):
         return num_tokens_from_text(text, model="gpt-4-32k-0613")
 
     if model not in [
-        "gpt-3.5-turbo-0613",
+        "gpt-3.5-turbo-1106",
         "gpt-4-0613",
         "gpt-3.5-turbo-16k-0613",
         "gpt-4-32k-0613",
@@ -974,9 +1053,9 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
         encoding = tiktoken.get_encoding("cl100k_base")
     if model == "gpt-3.5-turbo":
         print(
-            "Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613."
+            "Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106."
         )
-        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
+        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-1106")
     elif model == "gpt-3.5-turbo-16k":
         print(
             "Warning: gpt-3.5-turbo-16 may change over time. Returning num tokens assuming gpt-3.5-turbo-16k-0613."
@@ -992,7 +1071,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
             "Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613."
         )
         return num_tokens_from_messages(messages, model="gpt-4-32k-0613")
-    elif model == "gpt-3.5-turbo-0613":
+    elif model == "gpt-3.5-turbo-1106":
         tokens_per_message = (
             4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         )
@@ -1029,7 +1108,7 @@ def get_model_name():
     model_name = os.getenv("FT_MODEL_NAME")
     logger.warn("OSENV model_name = %s", model_name)
     if model_name is None:
-        model_name = "ft:gpt-3.5-turbo-0613:personal:3d-printer-v1:7sAy9iZ1"
+        model_name = "ft:gpt-3.5-turbo-1106:personal:3dprintergpt3v6:926bgpn5"
     return model_name
 
 
@@ -1040,3 +1119,13 @@ def get_openai(openai_api_key):
         openai.api_base = proxy
     return openai
 
+
+@csrf_exempt  # 禁用csrf，实际生产中请正确设置csrf token
+def upload_image(request):
+    if request.method == 'POST' and request.FILES['file']:
+        myfile = request.FILES['file']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+        return JsonResponse({'url': uploaded_file_url})
+    return JsonResponse({'error': 'Failed to upload the file'}, status=400)
