@@ -190,25 +190,15 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-"""
-# Allauth settings
-ACCOUNT_ADAPTER = "account.allauth.AccountAdapter"
-ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "optional")
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.privateemail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'office@3dprinter.quest'
+EMAIL_HOST_PASSWORD = 'PASSWORD'
+DEFAULT_FROM_EMAIL = 'office@3dprinter.quest'
 
-# Email settings
-EMAIL_BACKEND = os.getenv(
-    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
-)
-
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.mailgun.org")
-EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", True) == "True"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False) == "True"
-DEFAULT_FROM_EMAIL = os.getenv("EMAIL_FROM", "webmaster@localhost")
-"""
 
 
 # Chroma Sqlite

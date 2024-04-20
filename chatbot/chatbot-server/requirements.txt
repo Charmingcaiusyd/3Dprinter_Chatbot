@@ -78,3 +78,4 @@ docx2txt==0.8
 chromadb==0.4.10
 twilio==8.11.0
 sendgrid==6.11.0
+dkimpy==1.1.6

@@ -1,3 +1,15 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+COUNTRY_CODES = {
+    'AU': '61',
+    'US': '1',
+    'CN': '86',
+}
+
+SELECTED_COUNTRY_CODE = 'AU'
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.utils.timezone import now
@@ -32,10 +44,20 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.shortcuts import redirect
+from django.utils.html import strip_tags
+from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from dkim import DKIM, sign
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 
+# Set up basic configuration for logging
 logger = logging.getLogger(__name__)
 
-# 系统资源消耗LOG
+# System resource consumption LOG
 def log_system_resource_usage(user):
     cpu_usage = psutil.cpu_percent()
     memory_usage = psutil.virtual_memory().percent
@@ -46,9 +68,6 @@ def log_system_resource_usage(user):
         memory_usage=memory_usage
     )
 
-
-
-# 下载模型文件
 def download_model(file_id, model_path):
     url = f'https://drive.google.com/uc?id={file_id}&export=download'
     response = requests.get(url, stream=True)
@@ -70,7 +89,7 @@ def get_or_download_model(model_folder, model_name):
     return YOLO(model_path)
 
 
-# 获取实时数据的视图
+# Get real-time data view
 @login_required
 @require_http_methods(["GET"])
 def get_realtime_data(request):
@@ -120,7 +139,7 @@ def get_realtime_data(request):
                     total_confidence += box.confidence
                     confidence_count += 1
 
-        # 计算平均置信度
+        # Calculate the average confidence level
         average_confidence = total_confidence / confidence_count if confidence_count > 0 else None
 
         # Prepare the data for the most recent detection
@@ -152,14 +171,13 @@ def get_realtime_data(request):
             'classCounts': dict(class_counts),
             'system_resources': resource_data,
             'processing_time': processing_time,
-            'average_confidence': average_confidence,  # 将平均置信度添加到响应数据中
+            'average_confidence': average_confidence,  # Adding average confidence to response data
         }
-        print("data")
-        print(data)
+        # print(data)
         return JsonResponse(data)
 
     except Exception as e:
-        logger.error('Error fetching real-time data: %s', e)
+        # logger.error('Error fetching real-time data: %s', e)
         return JsonResponse({'error': 'Error retrieving real-time data'}, status=500)
 
 
@@ -183,7 +201,7 @@ def download_image(image_url, current_directory):
         return image_path  # Return the path to the downloaded image
 
     except requests.RequestException as e:
-        print(f"Error downloading image: {e}")  # Print error if occurred
+        # print(f"Error downloading image: {e}")  # Print error if occurred
         return None
 
 
@@ -193,11 +211,11 @@ def download_image(image_url, current_directory):
 @require_http_methods(["POST"])
 def process_frame(request):
     try:
-        start_time = time.time()  # 记录开始时间
+        start_time = time.time()  # Record start time
 
         image_url = request.POST.get('image_url')
         if not image_url:
-            print("No image URL provided")
+            # print("No image URL provided")
             return JsonResponse({'status': 'error', 'message': 'No image URL provided'}, status=400)
 
         # Attempt to download the image from imgbb
@@ -219,7 +237,7 @@ def process_frame(request):
             # Step 4: Load and convert the image from the temporary file
             img = Image.open(tmp_filename).convert('RGB')
 
-            print("Image downloaded successfully from imgbb.")
+            # print("Image downloaded successfully from imgbb.")
 
             # Step 5: Retrieve the image_size from the user's settings
             image_size_setting = MonitorSetting.objects.filter(user=request.user, key='image_size').first()
@@ -236,14 +254,14 @@ def process_frame(request):
             # Resize the image
             img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
-            print("Image resized successfully while maintaining aspect ratio.")
+            # print("Image resized successfully while maintaining aspect ratio.")
 
         except requests.RequestException as e:
-            print(f"Error downloading image: {e}")  # Print error if occurred
+            # print(f"Error downloading image: {e}")  # Print error if occurred
             return JsonResponse({'status': 'error', 'message': 'Error downloading image'}, status=500)
 
         try:
-            # 获取 YOLO 参数设置
+            # Get YOLO parameter settings
             user = request.user
             confidence_setting = MonitorSetting.objects.filter(user=user, key='confidence_threshold').first()
             iou_setting = MonitorSetting.objects.filter(user=user, key='iou_threshold').first()
@@ -253,13 +271,13 @@ def process_frame(request):
             nms_threshold = MonitorSetting.objects.filter(user=user, key='nms_threshold').first().value or 0.4  # Default value if not set
             image_size = MonitorSetting.objects.filter(user=user, key='image_size').first().value or 640  # Default value if not set
 
-            # 如果设置存在，则应用它们，否则使用默认值
+            # If the settings exist, apply them, otherwise use the defaults
             confidence_threshold = float(confidence_setting.value) if confidence_setting else 0.5
             iou_threshold = float(iou_setting.value) if iou_setting else 0.5
 
-            print("Get YOLO parameter settings.")
+            # print("Get YOLO parameter settings.")
         except Exception as e:
-            print('Error during Get YOLO parameter settings: %s', e)
+            # print('Error during Get YOLO parameter settings: %s', e)
             return JsonResponse({'status': 'error', 'message': 'Error during Get YOLO parameter settings'}, status=500)
 
         try:
@@ -272,10 +290,10 @@ def process_frame(request):
             model_n = get_or_download_model(model_folder, "yolov8n.pt")
             # print("Load models yolov8n")
 
-            print("Process the image with both models.")
+            # print("Process the image with both models.")
 
         except Exception as e:
-            print('Error during Process the image with both models: %s', e)
+            # print('Error during Process the image with both models: %s', e)
             return JsonResponse({'status': 'error', 'message': 'Error during Process the image with both models'}, status=500)
 
         # Analyze image with both models
@@ -285,7 +303,7 @@ def process_frame(request):
             # print("Analyzing image with YOLOv8n")
             results_n = model_n([img])
         except Exception as e:
-            print(f"Failed to analyze image with models: {e}")
+            # print(f"Failed to analyze image with models: {e}")
             return {"error": f"Failed to analyze image with models: {e}"}
 
         try:
@@ -293,8 +311,8 @@ def process_frame(request):
             # 提取边界框和置信度
             boxes_m = results_m[0].boxes.xyxy
             boxes_n = results_n[0].boxes.xyxy
-            scores_m = results_m[0].boxes.conf  # 使用 conf 属性获取置信度
-            scores_n = results_n[0].boxes.conf  # 使用 conf 属性获取置信度
+            scores_m = results_m[0].boxes.conf  # Use the conf attribute to get a confidence level
+            scores_n = results_n[0].boxes.conf  # Use the conf attribute to get a confidence level
             
             labels_m = torch.tensor([0, 1] * len(boxes_m))
             labels_n = torch.tensor([2, 3] * len(boxes_n))
@@ -306,7 +324,7 @@ def process_frame(request):
             all_labels = torch.cat((labels_m, labels_n), dim=0)
             all_scores = torch.cat((scores_m, scores_n), dim=0)
 
-            # 计算平均置信度
+            # Calculate the average confidence level
             average_confidence = all_scores.mean().item() if len(all_scores) > 0 else 0
 
             # Initialize lists for unique boxes and labels
@@ -378,24 +396,22 @@ def process_frame(request):
                 'total_boxes': len(unique_boxes),
                 'yolo_output': json.dumps(boxes_info, indent=4),
                 'image_url': image_url,  # Include the image URL in the response
-                'average_confidence': average_confidence,  # 添加平均置信度到响应数据
+                'average_confidence': average_confidence,  # Adding Average Confidence to Response Data
             }
 
-            print('Boxes the image.')
-            print(response_data)
+            # print('Boxes the image.')
+            # print(response_data)
 
         except Exception as e:
-            print('Error during Boxes the image: %s', e)
+            # print('Error during Boxes the image: %s', e)
             return JsonResponse({'status': 'error', 'message': 'Error during Boxes the image'}, status=500)
 
         now_ = datetime.now()
 
+        end_time = time.time()  # Record end time
+        calculated_processing_time = end_time - start_time  # Calculate processing time
 
-
-        end_time = time.time()  # 记录结束时间
-        calculated_processing_time = end_time - start_time  # 计算处理时间
-
-        # 创建 Detection 实例
+        # Creating a Detection Instance
         detection_instance = Detection.objects.create(
             id=int(now_.strftime('%Y%m%d%H%M%S')),
             user=request.user,
@@ -407,7 +423,7 @@ def process_frame(request):
             processing_time=calculated_processing_time,  
         )
 
-        # 对于每个 unique_box 创建 Box 实例
+        # Create Box instances for each unique_box
         for box_info in boxes_info:
             coordinates = box_info['coordinates']
             Box.objects.create(
@@ -447,7 +463,7 @@ def process_frame(request):
         return JsonResponse(response_data)
 
     except Exception as e:
-        print('An error occurred: %s', e)
+        # print('An error occurred: %s', e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
@@ -521,12 +537,12 @@ def yolo_params(request):
 def alert_settings(request):
     if request.method == 'POST':
         try:
-            # 从 POST 请求中提取紧急联系信息
+            # Extracting emergency contact information from POST requests
             contact_name = request.POST.get('name')
             contact_email = request.POST.get('email')
             contact_phone = request.POST.get('phone')
 
-            # 存储或更新紧急联系信息到 EmergencyContact
+            # Store or update emergency contact information to EmergencyContact
             emergency_contact, created = EmergencyContact.objects.get_or_create(
                 associated_user=request.user,
                 defaults={
@@ -537,13 +553,13 @@ def alert_settings(request):
             )
 
             if not created:
-                # 如果记录已经存在，更新信息
+                # If the record already exists, update the information
                 emergency_contact.contact_name = contact_name
                 emergency_contact.contact_phone = contact_phone
                 emergency_contact.contact_email = contact_email
                 emergency_contact.save()
 
-            # 回传保存的联系信息给前端，确认更新
+            # Return saved contact information to the front-end to confirm the update
             response_data = {
                 'contact_name': emergency_contact.contact_name,
                 'contact_email': emergency_contact.contact_email,
@@ -552,10 +568,8 @@ def alert_settings(request):
 
             return JsonResponse({'status': 'success', 'message': 'Emergency contact updated successfully.', 'data': response_data})
         except Exception as e:
-            # 在发生错误时返回错误信息
             return JsonResponse({'status': 'error', 'message': 'Failed to update emergency contact.', 'error': str(e)}, status=500)
     else:
-        # 如果请求方法不是POST，返回方法不允许的错误
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
 
 
@@ -590,7 +604,7 @@ def initial_values(request):
             'emergency_contact': contact_info,
         }
 
-        print(response_data)
+        # print(response_data)
         return JsonResponse(response_data)
 
     except Exception as e:
@@ -599,42 +613,147 @@ def initial_values(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-def send_email(subject, message_body, to_email):
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "X-Postmark-Server-Token": settings.POSTMARK_SERVER_TOKEN  # Ensure this is in your Django settings
-    }
 
-    payload = {
-        "From": "office@3dprinter.quest",  # Your verified sending email in Postmark
-        "To": to_email,
-        "Subject": subject,
-        "HtmlBody": message_body,  # For HTML emails, or "TextBody" for plain text
-    }
+def get_or_download_private_key(base_dir):
+    private_key_path = os.path.join(base_dir, "private.key")
+    # print(f"Checking for private key at: {private_key_path}")
+    if not os.path.exists(private_key_path):
+        # print(f"Private key not found. Downloading from Google Drive...")
+        download_file("1AvpmhRV0Rw1B8xRN-VPSoB-nMTYQiUbL", private_key_path)
+        # print(f"Private key downloaded successfully to: {private_key_path}")
+    # else:
+        # print(f"Private key already exists at: {private_key_path}")
+    return private_key_path
 
+
+
+def send_email(subject, message_body, to_email, image_url, contact_name):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    key_path = get_or_download_private_key(base_dir)
+    html_message = render_to_string('email.html', {
+        'contact_name': contact_name,
+        'message_body': message_body,
+        'image_url': image_url
+    })
+    
+    
     try:
-        response = requests.post("https://api.postmarkapp.com/email", json=payload, headers=headers)
-        print(f"Email sent to {to_email} with response {response.status_code}: {response.text}")
+        # print(f"Trying to send email...")
+        # print(f"Private key loaded from {key_path}")
+        if not os.path.exists(key_path):
+            raise FileNotFoundError(f"Private key file not found at {key_path}")
+        with open(key_path, 'r') as f:
+            private_key = f.read()
+        # print(f"Private key content:")
+        # print(private_key)
+        # print(f"Type of private_key before encoding: {type(private_key)}")
+
+        private_key = private_key.encode('utf-8')  # Convert private_key to bytes
+        # print(f"Type of private_key after encoding: {type(private_key)}")
+
+        msg = MIMEMultipart()
+        msg['Subject'] = subject
+        msg['From'] = 'office@3dprinter.quest'
+        msg['To'] = to_email
+        msg['Reply-To'] = 'office@3dprinter.quest'
+        msg.attach(MIMEText(html_message, 'html'))
+        msg_string = msg.as_string()
+
+        signature = sign(
+            message=msg_string.encode('utf-8'),
+            selector=b'default',
+            domain=b'3dprinter.quest',
+            privkey=private_key,
+            include_headers=[b'From', b'To', b'Subject']
+        )
+        # print(f"Email signed with DKIM: {signature}")
+        
+        # print(f"Type of signature: {type(signature)}")
+    
+        msg_signed = signature.decode('utf-8').replace('\r\n', '') # Replace newline characters with spaces in the signature
+
+        # print(f"Signed message: {msg_signed}")
+        
+        # Create EmailMessage Object
+        email = EmailMessage()
+        email.subject = subject  # Set the subject using the subject attribute
+        email.from_email = 'office@3dprinter.quest'  # Set the from email using the from_email attribute
+        email.to = [to_email]  # Set the to email using the to attribute (as a list)
+        email.reply_to = ['office@3dprinter.quest']  # Set the reply-to using the reply_to attribute (as a list)
+                # Set the email body and attach the HTML content
+        
+        # Add the DKIM signature to the email headers
+        email.extra_headers = {'DKIM-Signature': msg_signed}
+
+        # Set the email body and attach the HTML content
+        email.content_subtype = 'html'
+        email.body = html_message
+
+        # print(f"Email object created: {email}")
+        email.send()
+        # print(f"Email sent successfully to {to_email}")
     except Exception as e:
         print(f"Failed to send email to {to_email}: {e}")
-        
 
-def send_sms(twilio_client, message_body, to_phone):
+def format_phone_number(phone_number):
+    # Remove any non-digit characters
+    phone_number = ''.join(filter(str.isdigit, phone_number))
+
+    # Get the selected country code and corresponding area code
+    country_code = COUNTRY_CODES[SELECTED_COUNTRY_CODE]
+    area_code = f"+{country_code}"
+
+    # Check the length of the phone number
+    if len(phone_number) == len(country_code) + 7:
+        # Local number without area code and leading "0"
+        formatted_number = f"{area_code} 0{phone_number[-9:]}"
+    elif len(phone_number) == len(country_code) + 8:
+        if phone_number.startswith("0"):
+            # Local number with leading "0"
+            formatted_number = f"{area_code} {phone_number[-10:]}"
+        else:
+            # Local number without area code
+            formatted_number = f"{area_code} 0{phone_number[-9:]}"
+    elif len(phone_number) == len(country_code) + 9:
+        if phone_number.startswith(country_code):
+            # International number with country code
+            formatted_number = f"+{phone_number}"
+        else:
+            # Invalid phone number format
+            raise ValueError(f"Invalid phone number format: {phone_number}")
+    elif len(phone_number) == len(country_code) + 10 and phone_number.startswith(country_code):
+        # International number with country code and leading "0"
+        formatted_number = f"+{phone_number[:len(country_code)]} 0{phone_number[len(country_code):]}"
+    else:
+        # Invalid phone number format
+        raise ValueError(f"Invalid phone number format: {phone_number}")
+
+    return formatted_number
+
+
+
+def send_sms(twilio_client, message_body, to_phone, contact_name, image_url):
     try:
+
+        # Format the phone number
+        to_phone = format_phone_number(to_phone)
+        # print(f"to_phone: {to_phone}")
+        # Construct a more informative and professional SMS message
+        sms_message = f"Dear {contact_name},\n\n"
+        sms_message += "We have detected an important event that requires your attention:\n\n"
+        sms_message += f"{message_body}\n\n"
+        sms_message += f"Please check the following image for more details: {image_url}\n\n"
+        sms_message += "If you have any questions or concerns, please don't hesitate to contact us.\n\n"
+        sms_message += "Best regards,\nThe 3D Printer Quest Team"
+
         message = twilio_client.messages.create(
-            body=message_body,
+            body=sms_message,
             from_='+18044804795',  # Your Twilio number
             to=to_phone
         )
-        print(f"SMS sent to {to_phone} with SID {message.sid}")
+        # print(f"SMS sent to {to_phone} with SID {message.sid}")
     except Exception as e:
-        # Logging more information about the failure
         print(f"Failed to send SMS to {to_phone}: {e}")
-        if hasattr(e, 'http_status') and hasattr(e, 'code'):
-            print(f"HTTP status: {e.http_status}, error code: {e.code}")
-        if hasattr(e, 'msg'):
-            print(f"Error message: {e.msg}")
 
 def check_and_notify():
     max_retries = 5  # Set a max number of retries
@@ -653,11 +772,11 @@ def check_and_notify():
 
                 # If there are no recent events, log and exit function
                 if not recent_events.exists():
-                    print("No recent events found. Exiting.")
+                    # print("No recent events found. Exiting.")
                     return
 
                 # Log the number of events found
-                print(f"Found {len(recent_events)} events in the last 10 minutes.")
+                # print(f"Found {len(recent_events)} events in the last 10 minutes.")
 
                 # Process each event
                 for event in recent_events:
@@ -665,36 +784,34 @@ def check_and_notify():
                         emergency_contact = EmergencyContact.objects.filter(associated_user=event.user).first()
                         if emergency_contact:
                             # Construct the message body
-                            message_body = f"Hello {emergency_contact.contact_name}, there has been a detection:\n"
-                            message_body += f"- Event Type: {event.label}, Count: {event.count}, Image URL: {event.image_url}\n"
-                            message_body += "Please check the image for more details."
+                            message_body = f"Event Type: {event.label}, Count: {event.count}"
 
                             # Log the notification info
-                            print(f"Sending notification to {emergency_contact.contact_name} ({emergency_contact.contact_email}, {emergency_contact.contact_phone})")
+                            # print(f"Sending notification to {emergency_contact.contact_name} ({emergency_contact.contact_email}, {emergency_contact.contact_phone})")
 
                             # Send notifications as configured
                             if emergency_contact.contact_phone:
-                                send_sms(twilio_client, message_body, emergency_contact.contact_phone)
+                                send_sms(twilio_client, message_body, emergency_contact.contact_phone, emergency_contact.contact_name, event.image_url)
                             if emergency_contact.contact_email:
-                                send_email("New Event Detected!", message_body, emergency_contact.contact_email)
+                                send_email("New Event Detected!", message_body, emergency_contact.contact_email, event.image_url, emergency_contact.contact_name)
 
                     except Exception as e:
                         print(f"Failed to process event {event.id}: {e}")
 
                 # Once all events are processed, delete them
                 MonitorEvent.objects.filter(timestamp__gte=ten_minutes_ago).delete()
-                print(f"All recent events have been processed and deleted.")
+                # print(f"All recent events have been processed and deleted.")
                 break  # Break out of the loop if successful
 
         except OperationalError as e:
             if 'database is locked' in str(e) and attempt < max_retries - 1:
-                print(f"Database is locked, retrying {attempt + 1}/{max_retries}")
+                # print(f"Database is locked, retrying {attempt + 1}/{max_retries}")
                 time.sleep(retry_sleep)  # Sleep and retry
             else:
                 raise  # Re-raise exception if not a known recoverable error or max retries reached
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(check_and_notify, 'interval', minutes=5)  # Schedule the job every 5 minutes
+scheduler.add_job(check_and_notify, 'interval', minutes=1)  # Schedule the job every 5 minutes
 scheduler.start()
 
 
@@ -726,10 +843,10 @@ def check_user_authenticated(user):
     # Return True if the user is authenticated, otherwise False
     return user.is_authenticated
 
-# 视图函数
+
 @login_required(login_url='https://3dprinter.quest/api/monitor/login/')
 def index(request):
-    print("Request object:", request)
-    print("User:", request.user)
-    print("Is authenticated:", request.user.is_authenticated)
+    # print("Request object:", request)
+    # print("User:", request.user)
+    # print("Is authenticated:", request.user.is_authenticated)
     return render(request, 'index.html')

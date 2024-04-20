@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printer Quest - Event Notification</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .header img {
+            max-width: 200px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            color: #777;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #777;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://3dprinter.quest/_nuxt/icons/144x144.0ab047ec.png" alt="3D Printer Quest Logo">
+            <h1>3D Printer Quest Event Notification</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{ contact_name }},</p>
+            <p>We have detected an important event that requires your attention:</p>
+            <p>{{ message_body }}</p>
+            <p>Please check the following image for more details:</p>
+            <img src="{{ image_url }}" alt="Event Image" style="max-width: 100%;">
+            <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
+            <p>Best regards,<br>The 3D Printer Quest Team</p>
+        </div>
+        <div class="footer">
+            <p>Visit our website: <a href="https://3dprinter.quest/">https://3dprinter.quest/</a></p>
+            <p>Contact us: <a href="mailto:office@3dprinter.quest">office@3dprinter.quest</a></p>
+        </div>
+    </div>
+</body>
+</html>

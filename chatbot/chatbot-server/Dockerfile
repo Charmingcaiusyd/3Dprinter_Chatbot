@@ -13,6 +13,7 @@ ENV DJANGO_SUPERUSER_EMAIL=admin@example.com
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir --default-timeout=100 -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+RUN pip install django-apscheduler
 
 WORKDIR /app
 
@@ -21,6 +22,10 @@ COPY . .
 
 RUN /bin/sh -c python manage.py makemigrations monitor
 RUN /bin/sh -c python manage.py migrate monitor
+RUN /bin/sh -c python manage.py makemigrations 
+RUN /bin/sh -c python manage.py migrate
+RUN /bin/sh -c python manage.py migrate django_apscheduler
+
 
 
 RUN /bin/sh -c python manage.py check --deploy \
