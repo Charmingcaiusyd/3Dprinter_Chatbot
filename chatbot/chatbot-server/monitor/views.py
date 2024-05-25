@@ -758,6 +758,15 @@ def send_sms(twilio_client, message_body, to_phone, contact_name, image_url):
 def check_and_notify():
     max_retries = 5  # Set a max number of retries
     retry_sleep = 1  # Time to sleep between retries in seconds
+
+    class_mapping = {
+        0: "spaghetti",
+        1: "stringing", 
+        2: "zits",
+        3: "Under-Extrusion",
+        4: "warping"
+    }
+    
     for attempt in range(max_retries):
         try:
             with transaction.atomic():
@@ -783,8 +792,62 @@ def check_and_notify():
                     try:
                         emergency_contact = EmergencyContact.objects.filter(associated_user=event.user).first()
                         if emergency_contact:
-                            # Construct the message body
-                            message_body = f"Event Type: {event.label}, Count: {event.count}"
+
+                            # Get the label name from class_mapping
+                            label_name = class_mapping.get(event.label, "Unknown")
+
+                            # Construct a more informative and specific message body
+                            message_body = f"Event Details:\n"
+                            message_body += f"- Event Type: {label_name}\n"  # Use label name here
+                            message_body += f"- Number of Occurrences: {event.count}\n\n"
+
+                            # Provide specific guidance based on the event type
+                            if label_name == "spaghetti":
+                                message_body += "Possible Causes:\n"
+                                message_body += "- Poor bed adhesion\n"
+                                message_body += "- Incorrect first layer height\n\n"
+                                message_body += "Recommended Actions:\n"
+                                message_body += "- Level and clean the print bed\n"
+                                message_body += "- Adjust first layer settings in the slicer\n"
+                                message_body += "- Use a brim or raft for better adhesion\n"
+                            elif label_name == "stringing":
+                                message_body += "Possible Causes:\n"
+                                message_body += "- Insufficient retraction settings\n"
+                                message_body += "- Print temperature too high\n\n"
+                                message_body += "Recommended Actions:\n"
+                                message_body += "- Increase retraction distance and speed\n"
+                                message_body += "- Reduce print temperature slightly\n"
+                                message_body += "- Enable combing mode in the slicer\n"
+                            elif label_name == "zits":
+                                message_body += "Possible Causes:\n"
+                                message_body += "- Over-extrusion\n"
+                                message_body += "- Inconsistent filament diameter\n"
+                                message_body += "- Moisture in the filament\n\n"
+                                message_body += "Recommended Actions:\n"
+                                message_body += "- Calibrate the extruder steps/mm\n"
+                                message_body += "- Check for and remove any filament debris in the nozzle\n"
+                                message_body += "- Dry the filament if it has absorbed moisture\n"
+                            elif label_name == "under-extrusion":
+                                message_body += "Possible Causes:\n"
+                                message_body += "- Incorrect filament diameter setting\n"
+                                message_body += "- Clogged nozzle\n"
+                                message_body += "- Extruder tension too low\n\n"
+                                message_body += "Recommended Actions:\n"
+                                message_body += "- Check and adjust the filament diameter in the slicer settings\n"
+                                message_body += "- Clean the nozzle thoroughly\n"
+                                message_body += "- Increase the extruder tension if adjustable\n"
+                            elif label_name == "warping":
+                                message_body += "Possible Causes:\n"
+                                message_body += "- Insufficient bed adhesion\n"
+                                message_body += "- Printing environment too cold\n"
+                                message_body += "- High temperature difference between the bed and the environment\n\n"
+                                message_body += "Recommended Actions:\n"
+                                message_body += "- Use a heated bed and/or adhesive (e.g., glue stick, hair spray)\n"
+                                message_body += "- Enclose the printer to maintain a consistent temperature\n"
+                                message_body += "- Reduce the bed temperature and/or increase the ambient temperature\n"
+                            else:
+                                message_body += "This is an unknown event type. Please check the provided image for more information.\n"
+
 
                             # Log the notification info
                             # print(f"Sending notification to {emergency_contact.contact_name} ({emergency_contact.contact_email}, {emergency_contact.contact_phone})")

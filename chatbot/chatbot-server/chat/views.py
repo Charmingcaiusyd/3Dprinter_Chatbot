@@ -461,10 +461,10 @@ def conversation(request):
             3: "Under-Extrusion",
             4: "warping"
             }
-            
+
             # 分析图片并生成结构化描述
             image_analysis = analyze_image(image_url_original)
-            
+
             # 从分析结果中提取信息
             image_info = image_analysis['image_info']
             boxes_info = image_analysis['boxes_info']
@@ -472,7 +472,7 @@ def conversation(request):
             yolo_output = image_analysis['yolo_output']
             image_url = image_analysis['image_url']
 
-            # 构建图片描述列表  
+            # 构建图片描述列表
             image_description = []
             # image_description = [f"![Image](" + image_url_original + ")"]    # 在描述末尾添加图片信息和URL
             image_description.append(f"Image size: {image_info['width']}x{image_info['height']}")
@@ -484,11 +484,20 @@ def conversation(request):
                 class_name = class_mapping.get(label, "Unknown")
                 image_description.append(f"Detected {class_name} (label: {label}) at {coords}")
 
+            image_description.append("Please carefully analyze the provided 3D printing image diagnostics information, including the image size, total detected objects, and specific issues found such as spaghetti, stringing, zits, under-extrusion, and warping.")
+            image_description.append("For each detected issue:")
+            image_description.append("1. Clearly state what the issue is and how many times it was found in the image. Provide the specific location coordinates of the issue.")
+            image_description.append("2. Assess the severity of each issue on a scale from 1 (minor) to 5 (severe) based on the area affected by the issue and the number of occurrences. Provide a brief justification for your rating. Describe in detail the potential impact of the issue on print quality and the final product.")
+            image_description.append("3. Suggest specific troubleshooting steps, improvement recommendations, and solutions for each issue. Provide detailed explanations on how to adjust printer settings (e.g., temperature, speed, layer height, retraction), optimize slicing parameters, improve the printing environment, choose appropriate materials, etc.")
+            image_description.append("4. If no issues are detected, evaluate the overall print quality and confirm whether the print result is good based on the diagnostics. Provide recommendations for maintaining good print quality.")
+            image_description.append("5. Where possible, provide example images of relevant issues and compare them with the current image.")
+            image_description.append("Please use a clear format to present your answer, using headings, bullet points, or paragraphs to clearly distinguish your analysis of each detected issue.")
+            image_description.append("The goal is to provide clear, actionable guidance to help improve the 3D printing outcome based on the specific issues found in the image.")
+            image_description.append("Your thorough analysis is crucial for resolving 3D printing problems. Please provide comprehensive and in-depth insights and recommendations to the best of your ability.")
 
-            image_description.append("You need to analyze all the image information I have provided and tell me what issues have arisen in the 3D printing image diagnostics. What are the problems, how many are there, and how severe are they? What are the ways to improve and modify these issues?")
+
             image_description_str = start_marker + " ".join(image_description) + end_marker
 
-            # 将图片描述附加到最后一条消息内容上
             original_content = message_object.get("content", "")
             message_object["content"] = f"{original_content} {image_description_str}"        
             print("Content:", image_description_str)
