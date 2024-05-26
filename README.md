@@ -54,9 +54,98 @@ This project is licensed under the MIT License. See the `LICENSE` file for more 
 
 We would like to thank the experts who contributed to the annotation of the dataset and the open-source community for their valuable tools and resources that made this project possible.
 
+## How to RUN?
+
+
+### Preparation before running
+
+You need to set up the Docker environment and install Docker Compose.
+
+Currently, the compressed file contains the front end chatbot-client and the back end chatbot-server. The front end chatbot-client is developed using Vue.js, while the back end chatbot-server is developed using Python Django.
+
+Both files have the corresponding Docker image build files set up, and the run commands are described below.
+
+Moreover, it runs based on sqlite, which has already been configured by default with an API key stored. After running, you can configure the functionality via the admin interface.
+
+Since some features are not used, try to keep the default settings for unrelated functions. If needed, you can enable them according to the code configuration.
+
+### Running Steps
+
+#### 1. Build three images for both front end and back end
+
+##### a. Front End
+
+Enter the `chatbot-client` directory and run the following command:
+
+```bash
+docker build -t chatbot:latest .
+```
+
+This command will create an image named `chatbot:latest`.
+
+
+If you encounter dependency issues, use the following commands to install dependencies:
+
+```bash
+nvm install 18.0.0
+nvm use 18.0.0
+node -v
+yarn install
+```
+
+##### b. Back End
+
+Enter the `chatbot-server` directory and run the following command:
+
+```bash
+docker-compose build
+```
+This will create two images: `chatbot-web-server` and `chatbot-wsgi-server`, with the latter providing WSGI service for the former.
+
+If you encounter Python dependency issues, use the following command to install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 2. Run
+
+Enter the chatbot-client directory and run the following command:
+
+```bash
+docker-compose up
+```
+
+#### 3. Usage
+
+The database has already been pre-configured with an API key, which you can use directly.
+
+Enter `http://localhost` in your browser to access the service.
+
+Pre-configured administrator details:
+
+Default superuser: admin
+
+Default password: password
+
+Enter `http://localhost:9000/admin` to access the management panel using the above administrator credentials.
+
+| Service Name        | Local Machine Port | Docker Service | Nginx         |
+|---------------------|--------------------|----------------|---------------|
+| wsgi-server         | 8000               | 8000           |               |
+| web-server          | 9000               | 80             |               |
+| client              | CLIENT_PORT (800)  | 80             | Nginx 80/443  |
+| backend-wsgi-server | WSGI_PORT (8000)   | 8000           |               |
+| backend-web-server  | SERVER_PORT (9000) | 80             |               |
+
+
+
 ## Demo
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/UoPQNJK_C9s?si=zez0ozMOEJrSzQfV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+Please Click picture:
 
+[![Demo](Face.png)](https://www.youtube.com/watch?v=UoPQNJK_C9s)
 
-For any questions or inquiries, please contact the project maintainer at `office@3dprinter.quest`.
+## Contact us
+
+For any questions or inquiries, please contact the project maintainer at `office@3dprinter.quest`. Or the Author Zongmin CAI `Charmingcaiusyd@gmail.com`
