@@ -32,7 +32,7 @@ The dataset is augmented using techniques such as rotation, flipping, scaling, a
 
 To get started with this project, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/yourusername/3d-printing-quality-control.git`
+1. Clone the repository: `git clone https://github.com/Charmingcaiusyd/3Dprinter_Chatbot.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 3. Prepare the dataset by following the instructions in the `data` directory.
 4. Train the YOLOv8 model using the provided scripts in the `models` directory.
