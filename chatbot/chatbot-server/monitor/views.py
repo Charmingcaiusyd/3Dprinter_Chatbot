@@ -906,6 +906,45 @@ def check_user_authenticated(user):
     # Return True if the user is authenticated, otherwise False
     return user.is_authenticated
 
+@login_required
+@require_http_methods(["POST"])
+def clean_data(request):
+    try:
+        # Get all settings for the user
+        user_settings = MonitorSetting.objects.filter(user=request.user)
+
+        # Iterate over each setting and set its value to the midpoint
+        for setting in user_settings:
+            if setting.key == 'confidence_threshold':
+                setting.value = '0.5'  # Midpoint value for confidence threshold
+            elif setting.key == 'iou_threshold':
+                setting.value = '0.5'  # Midpoint value for IOU threshold
+            elif setting.key == 'max_detections':
+                setting.value = '50'  # Midpoint value for max detections, assuming range 1-100
+            elif setting.key == 'min_layer_size':
+                setting.value = '500'  # Midpoint value for min layer size, assuming range 1-1000
+            elif setting.key == 'class_prob_threshold':
+                setting.value = '0.5'  # Midpoint value for class probability threshold
+            elif setting.key == 'nms_threshold':
+                setting.value = '0.5'  # Midpoint value for NMS threshold
+            elif setting.key == 'image_size':
+                setting.value = '640'  # Midpoint value for image size, assuming range 256-1024
+            setting.save()  # Save the modified setting
+
+        # Clear all detection data for the user
+        Detection.objects.filter(user=request.user).delete()
+        Box.objects.filter(detection__user=request.user).delete()
+
+        # Clear all event data for the user
+        MonitorEvent.objects.filter(user=request.user).delete()
+
+        # Clear all resource usage data for the user
+        SystemResourceUsage.objects.filter(user=request.user).delete()
+
+        return JsonResponse({'status': 'success', 'message': 'Data cleaned successfully'})
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': 'Failed to clean data', 'error': str(e)}, status=500)
 
 @login_required(login_url='https://3dprinter.quest/api/monitor/login/')
 def index(request):

@@ -218,33 +218,33 @@
         padding: 20px 40px;
         margin-top: 30px;
         margin-bottom: 30px;
-        background-color: #e6dcf8; /* 浅紫色背景 */
-        color: #5d5379; /* 深紫色文字 */
-        border: 4px solid #5d5379; /* 深紫色边框 */
-        border-radius: 30px; /* 半圆形圆弧边框 */
+        background-color: #e6dcf8; /* Light purple background */
+        color: #5d5379; /* Dark purple text */
+        border: 4px solid #5d5379; /* Dark purple border */
+        border-radius: 30px; /* Semi-circular arc border */
         text-align: center;
         text-decoration: none;
         font-weight: bold;
-        transition: background-color 0.3s, transform 0.2s; /* 渐变背景色和抖动效果 */
-        will-change: transform; /* 优化抖动动画 */
+        transition: background-color 0.3s, transform 0.2s; /* Gradient background color and shake effect */
+        will-change: transform; /* Optimize shake animation */
       }
 
       .back-to-chatbot-btn:hover {
-        background-color: #d4cbea; /* 悬停时的背景颜色变化 */
+        background-color: #d4cbea; 
       }
 
       .back-to-chatbot-btn:active {
-        background-color: #c5b9da; /* 按下时的背景颜色变化 */
-        transform: scale(0.98); /* 按下时轻微缩小 */
-        animation: shake 0.2s linear; /* 添加抖动动画 */
+        background-color: #c5b9da; 
+        transform: scale(0.98); 
+        animation: shake 0.2s linear; 
       }
 
       .system-title {
-        text-align: center; /* 文本居中 */
-        font-size: 2em; /* 字体大小 */
-        color: #5d5379; /* 深紫色文字 */
-        margin-top: 20px; /* 上边距 */
-        margin-bottom: 20px; /* 下边距 */
+        text-align: center; 
+        font-size: 2em;
+        color: #5d5379; 
+        margin-top: 20px;
+        margin-bottom: 20px; 
       }
 
       @keyframes shake {
@@ -272,22 +272,22 @@
         padding: 20px 40px;
         margin-top: 30px;
         margin-bottom: 30px;
-        background-color: #e6dcf8; /* 浅紫色背景 */
-        color: #5d5379; /* 深紫色文字 */
-        border: 4px solid #5d5379; /* 深紫色边框 */
-        border-radius: 30px; /* 半圆形圆弧边框 */
+        background-color: #e6dcf8; 
+        color: #5d5379; 
+        border: 4px solid #5d5379; 
+        border-radius: 30px; 
         text-decoration: none;
         font-weight: bold;
-        transition: background-color 0.3s, transform 0.2s; /* 渐变背景色和抖动效果 */
+        transition: background-color 0.3s, transform 0.2s; 
       }
 
       .clean-data-btn:hover {
-        background-color: #d4cbea; /* 悬停时的背景颜色变化 */
+        background-color: #d4cbea; 
       }
 
       .clean-data-btn:active {
-        background-color: #c5b9da; /* 按下时的背景颜色变化 */
-        transform: scale(0.98); /* 按下时轻微缩小 */
+        background-color: #c5b9da; 
+        transform: scale(0.98); 
       }
       .custom-navbar {
         background-color: #f3eaf8; /* Set your custom color */
@@ -335,13 +335,13 @@
           </li>
 
           <li>
-            <a href="#" class="nav__right_btn">
+            <a href="#" class="nav__right_btn" id="clean-data-btn">
               <i class="fas fa-broom"></i> Clean Data
             </a>
           </li>
 
           <li>
-            <a href="https://github.com/Charmingcaiusyd/3Dprinter_Chatbot/tree/main/chatbot/chatbot-server/monitor" class="nav__right_btn">
+            <a href="https://github.com/Charmingcaiusyd/3Dprinter_Chatbot" class="nav__right_btn">
               <i class="fas fa-book"></i> Tutorial
             </a>
           </li>
@@ -609,10 +609,10 @@
 
     <!-- Custom JavaScript -->
     <script>
-      // 当文档加载完成后执行的函数
+      // The function that is executed after the document is fully loaded
       $(document).ready(function () {
         initial_values();
-        // 定义图表的上下文
+        // Define the context of the chart
         var lineChart1Ctx = document.getElementById("chart1").getContext("2d");
         var lineChart2Ctx = document.getElementById("chart2").getContext("2d");
         var lineChart3Ctx = document.getElementById("chart3").getContext("2d");
@@ -620,7 +620,7 @@
         var lineChart5Ctx = document.getElementById("chart5").getContext("2d");
         var pieChartCtx = document.getElementById("chart6").getContext("2d");
 
-        // 从cookie中提取CSRF令牌的函数
+        // The function to extract the CSRF token from cookies.
         function getCSRFToken() {
           var csrfToken = null;
           var cookies = document.cookie.split(";");
@@ -636,13 +636,13 @@
           return csrfToken;
         }
 
-        // 设置AJAX请求的CSRF令牌的函数
+        // The function to set the CSRF token for AJAX requests
         function csrfSafeMethod(method) {
-          // 这些HTTP方法不需要CSRF保护
+          // These HTTP methods do not require CSRF protection
           return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
         }
 
-        // 为AJAX请求设置全局前置处理器，添加CSRF令牌
+        // Set up a global preprocessor for AJAX requests to add the CSRF token.
         $.ajaxSetup({
           beforeSend: function (xhr, settings) {
             if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -651,7 +651,7 @@
           },
         });
 
-        // 发送AJAX请求的中央函数
+        // The central function for sending AJAX requests.
         function sendAJAX(url, method, data, onSuccess) {
           $.ajax({
             url: url,
@@ -665,7 +665,7 @@
           });
         }
 
-        // 滑块更新函数
+        // Slider update function
         function updateSliderValuePosition(slider, sliderValue) {
           var value = slider.val();
           var percent =
@@ -677,7 +677,7 @@
           sliderValue.css("left", newPos).text(value);
         }
 
-        // 初始化滑块的提示位置和输入事件
+        // Initialize the slider's tooltip position and input events
         $(".custom-slider").each(function () {
           var sliderValue = $(this).next(".slider-value");
           updateSliderValuePosition($(this), sliderValue);
@@ -687,7 +687,7 @@
           });
         });
 
-        // 处理表单提交
+        // Handle form submission
         $("#yolo-params").on("submit", function (e) {
           e.preventDefault();
           console.log(
@@ -705,35 +705,34 @@
           console.log("image Size:", $("#imageSize").val());
           alert("Parameters applied successfully (simulated)");
 
-          // 准备要发送的数据
+          // Prepare the data to be sent
           var formData = {
             confidenceThreshold: $("#confidence-threshold").val(),
             iouThreshold: $("#iou-threshold").val(),
             maxDetections: $("#max-detections").val(),
             minLayerSize: $("#min-layer-size").val(),
             classProbThreshold: $("#class-prob-threshold").val(),
-            nmsThreshold: $("#nms-threshold").val(), // 添加NMS阈值
-            imageSize: $("#image-size").val(), // 添加输入图像尺寸
-            // 如有必要，可添加其他滑块的值
+            nmsThreshold: $("#nms-threshold").val(), 
+            imageSize: $("#image-size").val(), 
           };
 
-          // 使用AJAX提交表单数据
+          // Submit form data using AJAX
           $.ajax({
             url: "/api/monitor/yolo_params/",
             type: "POST",
             data: formData,
             success: function (response) {
-              // 成功处理：更新UI或通知用户
+              // Success handling: update the UI or notify the user
               console.log("Parameters applied successfully:", response);
             },
             error: function (error) {
-              // 错误处理
+              // Error handling
               console.log("Error applying parameters:", error);
             },
           });
         });
 
-        // 如果浏览器支持获取媒体设备
+        // If the browser supports accessing media devices
         if (navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices
             .getUserMedia({ video: true })
@@ -791,11 +790,11 @@
                                     data.image_url
                                   );
                                 } else {
-                                  // 如果没有有效的图片 URL，不设置 src 属性
+                                  // If there is no valid image URL, do not set the src attribute
                                   $("#prediction-result").css(
                                     "display",
                                     "none"
-                                  ); // 或者您可以选择隐藏图片元素
+                                  ); 
                                   // Handle cases where no image URL is provided in the response
                                   console.error(
                                     "No image URL provided in response"
@@ -827,29 +826,29 @@
                 }
               }, 20000);
 
-              // 使用AJAX处理警报设置表单提交
+              // Handle alert settings form submission using AJAX
               $("#alert-form").on("submit", function (e) {
                 e.preventDefault();
 
-                // 收集表单中的数据
+                // Collect data from the form
                 var alertFormData = {
                   name: $("#name").val(),
                   email: $("#email").val(),
                   phone: $("#phone").val(),
                 };
 
-                // 执行AJAX调用提交警报设置数据
+                // Execute an AJAX call to submit alert settings data
                 $.ajax({
                   url: "/api/monitor/alert_settings/",
                   type: "POST",
                   data: alertFormData,
                   success: function (response) {
-                    // 成功回调：更新UI或通知用户
+                    // Success callback: update the UI or notify the user
                     console.log("Alert settings updated:", response);
                     alert("Alert settings updated successfully.");
                   },
                   error: function (xhr, status, error) {
-                    // 失败回调：通知用户失败
+                    // Failure callback: notify the user of the failure
                     console.log(
                       "Failed to update alert settings:",
                       xhr,
@@ -861,7 +860,11 @@
                 });
               });
 
-              // 新增函数 - 从后端获取实时检测数据并更新图表
+              $("#clean-data-btn").on("click", function (e) {
+                e.preventDefault();
+                cleanData();
+              });
+              // Fetch real-time detection data from the backend and update the chart
               function fetchAndUpdateChartData() {
                 $.ajax({
                   url: "/api/monitor/get_realtime_data/", // Adjust as needed
@@ -878,9 +881,9 @@
 
                     // Update Line Chart 2 (Total Area)
                     if (lineChart2) {
-                      lineChart2.data.labels.push(data.time); // 添加时间标签
+                      lineChart2.data.labels.push(data.time); // Add a timestamp
                       lineChart2.data.datasets.forEach((dataset) => {
-                        dataset.data.push(data.totalArea); // 添加总面积数据，如果没有则添加0
+                        dataset.data.push(data.totalArea); // Add total area data; if none exists, add 0
                       });
                       lineChart2.update();
                     }
@@ -897,21 +900,21 @@
                     // Update Line Chart 4 (CPU Usage)
                     if (lineChart4) {
                       lineChart4.data.labels.push(data.time);
-                      // 检查并更新CPU使用率数据集
+                      // Check and update the CPU usage dataset
                       if (lineChart4.data.datasets[0]) {
                         lineChart4.data.datasets[0].data.push(
                           data.system_resources.cpu_usage
                         );
                       }
 
-                      // 检查并更新内存使用率数据集
+                      // Check and update the memory usage dataset
                       if (lineChart4.data.datasets[1]) {
                         lineChart4.data.datasets[1].data.push(
                           data.system_resources.memory_usage
                         );
                       }
 
-                      // 刷新图表以显示最新数据
+                      // Refresh the chart to display the latest data
                       lineChart4.update();
                     }
 
@@ -926,7 +929,7 @@
 
                     // Update Pie Chart (Class Distributions)
                     if (pieChart) {
-                      // 更新饼图的标签、数据和背景颜色
+                      // Update the labels, data, and background colors of the pie chart
                       pieChart.data.labels = Object.keys(data.classCounts);
                       pieChart.data.datasets.forEach((dataset) => {
                         dataset.data = Object.values(data.classCounts);
@@ -935,7 +938,7 @@
                         ).map(() => getRandomPinkToPurpleColor());
                       });
 
-                      // 重新渲染饼图
+                      // Re-render the pie chart
                       pieChart.update();
                     }
                   },
@@ -948,7 +951,7 @@
               // Set an interval to fetch and update chart data every 30 seconds
               setInterval(fetchAndUpdateChartData, 34444);
 
-              // 初始化折线图和饼图
+              // Initialize the line chart and pie chart
               var lineChart1 = new Chart(lineChart1Ctx, {
                 type: "line",
                 data: {
@@ -977,7 +980,7 @@
               });
 
               var lineChart2 = new Chart(lineChart2Ctx, {
-                // 配置和数据
+                // Configuration and data
                 type: "line",
                 data: {
                   labels: [""],
@@ -1005,7 +1008,7 @@
               });
 
               var lineChart3 = new Chart(lineChart3Ctx, {
-                // 配置和数据
+                // Configuration and data
                 type: "line",
                 data: {
                   labels: [""],
@@ -1035,7 +1038,7 @@
               var lineChart4 = new Chart(lineChart4Ctx, {
                 type: "line",
                 data: {
-                  labels: [], // 时间标签
+                  labels: [], // Time labels
                   datasets: [
                     {
                       label: "CPU Usage (%)",
@@ -1069,7 +1072,7 @@
               });
 
               var lineChart5 = new Chart(lineChart5Ctx, {
-                // 配置和数据
+                // Configuration and data
                 type: "line",
                 data: {
                   labels: [""],
@@ -1096,16 +1099,16 @@
                 },
               });
 
-              // 初始化饼图数据
+              // Initialize pie chart data
               var pieChart = new Chart(pieChartCtx, {
                 type: "pie",
                 data: {
-                  labels: [], // 初始化时不设置任何标签
+                  labels: [], // Do not set any labels during initialization
                   datasets: [
                     {
-                      data: [], // 初始化时不设置任何数据
-                      backgroundColor: [], // 可以预先定义或根据数据动态生成
-                      borderColor: [], // 可以预先定义或根据数据动态生成
+                      data: [], // Do not set any data during initialization
+                      backgroundColor: [], // 
+                      borderColor: [], // Can either predefine or dynamically generate based on the data
                       borderWidth: 3,
                     },
                   ],
@@ -1115,9 +1118,9 @@
 
               const videoFeed = document.getElementById("prediction-result");
 
-              // 更新视频流函数
+              // Update video stream function.
               function updateVideoFeed(frameBlob) {
-                console.log("FrameBlob:", frameBlob); // 检查frameBlob对象
+                console.log("FrameBlob:", frameBlob); // Check the frameBlob object.
                 try {
                   const url = URL.createObjectURL(frameBlob);
                   videoFeed.src = url;
@@ -1129,18 +1132,18 @@
                 }
               }
 
-              // 辅助函数：生成随机颜色
+              // Helper function: generate a random color
               function getRandomPinkToPurpleColor() {
-                // 定义RGB中红色和蓝色的最小和最大值
-                const minRed = 128; // 确保有足够的红色成分
+                // Define the minimum and maximum values for red and blue in RGB
+                const minRed = 128; // Ensure there is enough red component.
                 const maxRed = 255;
-                const minBlue = 128; // 确保有足够的蓝色成分
+                const minBlue = 128; // Ensure there is enough blue component
                 const maxBlue = 255;
 
-                // 绿色成分保持较低
+                // Keep the green component low
                 const green = Math.floor(Math.random() * 128);
 
-                // 生成随机的红色和蓝色值
+                // Generate random red and blue values
                 const red = Math.floor(
                   Math.random() * (maxRed - minRed + 1) + minRed
                 );
@@ -1148,7 +1151,7 @@
                   Math.random() * (maxBlue - minBlue + 1) + minBlue
                 );
 
-                // 转换为十六进制颜色代码
+                // Convert to hexadecimal color code
                 const color = `rgb(${red},${green},${blue})`;
                 return color;
               }
@@ -1197,8 +1200,8 @@
             updateSliderValue(
               "nms-threshold",
               response.yolo_params.nms_threshold
-            ); // 更新NMS阈值
-            updateSliderValue("image-size", response.yolo_params.image_size); // 更新输入图像尺寸
+            ); // Update NMS threshold
+            updateSliderValue("image-size", response.yolo_params.image_size); // Update input image size
 
             // Update emergency contact inputs
             $("#name").val(response.emergency_contact.contact_name);
@@ -1226,6 +1229,53 @@
             alert("Logout failed. Please try again.");
           },
         });
+      }
+
+      function cleanData() {
+        // Reset slider values to their midpoints
+        resetSliderToMidpoint("confidence-threshold");
+        resetSliderToMidpoint("iou-threshold");
+        resetSliderToMidpoint("max-detections");
+        resetSliderToMidpoint("min-layer-size");
+        resetSliderToMidpoint("class-prob-threshold");
+        resetSliderToMidpoint("nms-threshold");
+        resetSliderToMidpoint("image-size");
+
+        // Clear chart data
+        clearChartData(lineChart1);
+        clearChartData(lineChart2);
+        clearChartData(lineChart3);
+        clearChartData(lineChart4);
+        clearChartData(lineChart5);
+        clearChartData(pieChart);
+
+        // Send clean data request to the server
+        $.ajax({
+          url: "/api/monitor/clean_data/",
+          type: "POST",
+          success: function (response) {
+            console.log("Data cleaned successfully");
+          },
+          error: function (xhr, status, error) {
+            console.error("Error cleaning data:", error);
+          },
+        });
+      }
+
+      function resetSliderToMidpoint(sliderId) {
+        let slider = $("#" + sliderId);
+        let min = parseFloat(slider.attr("min"));
+        let max = parseFloat(slider.attr("max"));
+        let midpoint = (min + max) / 2;
+        updateSliderValue(sliderId, midpoint);
+      }
+
+      function clearChartData(chart) {
+        chart.data.labels = [];
+        chart.data.datasets.forEach((dataset) => {
+          dataset.data = [];
+        });
+        chart.update();
       }
     </script>
   </body>

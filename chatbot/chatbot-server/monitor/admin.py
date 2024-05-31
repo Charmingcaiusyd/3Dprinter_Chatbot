@@ -55,9 +55,9 @@ class SystemResourceUsageAdmin(admin.ModelAdmin):
     list_filter = ('timestamp',)
 
     def has_change_permission(self, request, obj=None):
-        # 可以根据需要调整权限设置
+        # You can adjust the permission settings as needed.
         return super().has_change_permission(request, obj=obj)
 
     def has_delete_permission(self, request, obj=None):
-        # 可以根据需要调整权限设置
+        # You can adjust the permission settings as needed.
         return super().has_delete_permission(request, obj=obj)

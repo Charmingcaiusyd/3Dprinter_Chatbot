@@ -140,7 +140,7 @@ Enter `http://localhost:9000/admin` to access the management panel using the abo
 
 
 
-## Demo
+## Demo Veido
 
 Please Click picture:
 

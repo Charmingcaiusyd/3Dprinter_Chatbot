@@ -3,70 +3,74 @@ from django.contrib.auth.models import User
 from .validators import validate_image
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-# 紧急联系人信息
+
+# Emergency contact information
 class EmergencyContact(models.Model):
-    # 与用户模型的外键关联
+    # Foreign key association with the User model
     associated_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_contacts')
-    contact_name = models.CharField(max_length=255)  # 联系人姓名
-    contact_email = models.EmailField()  # 联系人电子邮件
-    contact_phone = models.CharField(max_length=20)  # 联系人电话号码
-    created_at = models.DateTimeField(auto_now_add=True)  # 创建时间自动设置为当前时间
-    updated_at = models.DateTimeField(auto_now=True)  # 更新时间自动设置为当前时间
+    contact_name = models.CharField(max_length=255)  # Contact person's name
+    contact_email = models.EmailField()  # Contact person's email
+    contact_phone = models.CharField(max_length=20)  # Contact person's phone number
+    created_at = models.DateTimeField(auto_now_add=True)  # Creation time automatically set to current time
+    updated_at = models.DateTimeField(auto_now=True)  # Update time automatically set to current time
 
     def __str__(self):
-        # 对象转换为字符串时显示的内容
+        # Content displayed when the object is converted to a string
         return f"{self.contact_name} ({self.contact_email}, {self.contact_phone})"
 
-# 监控事件信息
+
+# Monitoring event information
 class MonitorEvent(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='monitor_events')
-    label = models.CharField(max_length=255)  # 事件标签
-    timestamp = models.DateTimeField()  # 事件发生的时间戳
-    count = models.PositiveIntegerField(default=0)  # 该标签在指定时间的计数
-    image_url = models.URLField(null=True, blank=True)  # 监控图片的URL地址
-    created_at = models.DateTimeField(auto_now_add=True)  # 创建时间自动设置为当前时间
-    updated_at = models.DateTimeField(auto_now=True)  # 更新时间自动设置为当前时间
+    label = models.CharField(max_length=255)  # Event label
+    timestamp = models.DateTimeField()  # Timestamp of the event occurrence
+    count = models.PositiveIntegerField(default=0)  # Count of the label at the specified time
+    image_url = models.URLField(null=True, blank=True)  # URL address of the monitoring image
+    created_at = models.DateTimeField(auto_now_add=True)  # Creation time automatically set to current time
+    updated_at = models.DateTimeField(auto_now=True)  # Update time automatically set to current time
 
     def __str__(self):
-        # 对象转换为字符串时显示的内容
+        # Content displayed when the object is converted to a string
         return f"Event {self.label} at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
 
-# 检测信息
+
+# Detection information
 class Detection(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='detections')
-    image_width = models.IntegerField()  # 图像宽度
-    image_height = models.IntegerField()  # 图像高度
-    total_boxes = models.IntegerField()  # 总边界框数量
-    yolo_output = models.JSONField()  # YOLO输出的JSON数据
-    processing_time = models.FloatField(null=True, default=0.0)  # 添加默认处理时间
-    image_url = models.URLField(null=True, blank=True)  # 替换原来的 image_file 字段
-    created_at = models.DateTimeField(auto_now_add=True)  # 创建时间自动设置为当前时间
-    updated_at = models.DateTimeField(auto_now=True)  # 更新时间自动设置为当前时间
+    image_width = models.IntegerField()  # Image width
+    image_height = models.IntegerField()  # Image height
+    total_boxes = models.IntegerField()  # Total number of bounding boxes
+    yolo_output = models.JSONField()  # JSON data output by YOLO
+    processing_time = models.FloatField(null=True, default=0.0)  # Add default processing time
+    image_url = models.URLField(null=True, blank=True)  # Replace the original image_file field
+    created_at = models.DateTimeField(auto_now_add=True)  # Creation time automatically set to current time
+    updated_at = models.DateTimeField(auto_now=True)  # Update time automatically set to current time
 
 
 class Box(models.Model):
     detection = models.ForeignKey(Detection, on_delete=models.CASCADE, related_name='boxes')
-    label = models.CharField(max_length=50)  # 标签名称
-    class_name = models.CharField(max_length=50)  # 类别名称
-    x_min = models.FloatField()  # 边界框最小X坐标
-    y_min = models.FloatField()  # 边界框最小Y坐标
-    x_max = models.FloatField()  # 边界框最大X坐标
-    y_max = models.FloatField()  # 边界框最大Y坐标
-    confidence = models.FloatField(null=True, blank=True)  # 允许置信度为空
-    created_at = models.DateTimeField(auto_now_add=True)  # 创建时间自动设置为当前时间
-    updated_at = models.DateTimeField(auto_now=True)  # 更新时间自动设置为当前时间
+    label = models.CharField(max_length=50)  # Label name
+    class_name = models.CharField(max_length=50)  # Class name
+    x_min = models.FloatField()  # Minimum X coordinate of the bounding box
+    y_min = models.FloatField()  # Minimum Y coordinate of the bounding box
+    x_max = models.FloatField()  # Maximum X coordinate of the bounding box
+    y_max = models.FloatField()  # Maximum Y coordinate of the bounding box
+    confidence = models.FloatField(null=True, blank=True)  # Allow confidence to be null
+    created_at = models.DateTimeField(auto_now_add=True)  # Creation time automatically set to current time
+    updated_at = models.DateTimeField(auto_now=True)  # Update time automatically set to current time
+
     
-# 监控设置信息
+# Monitoring settings information
 class MonitorSetting(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='monitor_settings')
-    key = models.CharField(max_length=255)  # 设置项的键
-    value = models.TextField()  # 设置项的值
-    description = models.TextField(blank=True)  # 设置项的描述
-    created_at = models.DateTimeField(auto_now_add=True)  # 创建时间自动设置为当前时间
-    updated_at = models.DateTimeField(auto_now=True)  # 更新时间自动设置为当前时间
+    key = models.CharField(max_length=255)  # Key of the setting item
+    value = models.TextField()  # Value of the setting item
+    description = models.TextField(blank=True)  # Description of the setting item
+    created_at = models.DateTimeField(auto_now_add=True)  # Creation time automatically set to current time
+    updated_at = models.DateTimeField(auto_now=True)  # Update time automatically set to current time
 
     def __str__(self):
-        # 对象转换为字符串时显示的内容
+        # Content displayed when the object is converted to a string
         return f"Setting {self.key}"
 
 
@@ -74,12 +78,12 @@ class SystemResourceUsage(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     cpu_usage = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
-        null=True,  # 允许为空，表示数据可能不总是可用的
+        null=True,  # Allow null values, indicating that data may not always be available
         blank=True
     )
     memory_usage = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
-        null=True,  # 允许为空，表示数据可能不总是可用的
+        null=True,  # Allow null values, indicating that data may not always be available
         blank=True
     )
     user = models.ForeignKey(
