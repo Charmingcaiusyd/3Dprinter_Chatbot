@@ -732,6 +732,54 @@
           });
         });
 
+        function resetSliderToMidpoint(sliderId) {
+          console.log("Entering resetSliderToMidpoint with sliderId:", sliderId);
+          let slider = $("#" + sliderId);
+          let min = parseFloat(slider.attr("min"));
+          let max = parseFloat(slider.attr("max"));
+          let midpoint = (min + max) / 2;
+          updateSliderValue(sliderId, midpoint);
+        }
+
+        function cleanData() {
+          console.log("Entering cleanData");
+
+          // Reset slider values to their midpoints
+          resetSliderToMidpoint("confidence-threshold");
+          resetSliderToMidpoint("iou-threshold");
+          resetSliderToMidpoint("max-detections");
+          resetSliderToMidpoint("min-layer-size");
+          resetSliderToMidpoint("class-prob-threshold");
+          resetSliderToMidpoint("nms-threshold");
+          resetSliderToMidpoint("image-size");
+
+          // Send clean data request to the server
+          console.log("Sending AJAX request to clean data");
+          $.ajax({
+            url: "/api/monitor/clean_data/",
+            type: "POST",
+            success: function (response) {
+              console.log("AJAX request succeeded");
+              console.log("Server response:", response);
+            },
+            error: function (xhr, status, error) {
+              console.error("AJAX request failed");
+              console.error("Error:", error);
+            },
+            complete: function () {
+              console.log("AJAX request completed");
+            }
+          });
+
+          console.log("Leaving cleanData");
+        }
+
+        $("#clean-data-btn").on("click", function (e) {
+            console.log("Clean data button clicked");
+            e.preventDefault();
+            cleanData();
+        });
+
         // If the browser supports accessing media devices
         if (navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices
@@ -860,10 +908,6 @@
                 });
               });
 
-              $("#clean-data-btn").on("click", function (e) {
-                e.preventDefault();
-                cleanData();
-              });
               // Fetch real-time detection data from the backend and update the chart
               function fetchAndUpdateChartData() {
                 $.ajax({
@@ -1229,53 +1273,6 @@
             alert("Logout failed. Please try again.");
           },
         });
-      }
-
-      function cleanData() {
-        // Reset slider values to their midpoints
-        resetSliderToMidpoint("confidence-threshold");
-        resetSliderToMidpoint("iou-threshold");
-        resetSliderToMidpoint("max-detections");
-        resetSliderToMidpoint("min-layer-size");
-        resetSliderToMidpoint("class-prob-threshold");
-        resetSliderToMidpoint("nms-threshold");
-        resetSliderToMidpoint("image-size");
-
-        // Clear chart data
-        clearChartData(lineChart1);
-        clearChartData(lineChart2);
-        clearChartData(lineChart3);
-        clearChartData(lineChart4);
-        clearChartData(lineChart5);
-        clearChartData(pieChart);
-
-        // Send clean data request to the server
-        $.ajax({
-          url: "/api/monitor/clean_data/",
-          type: "POST",
-          success: function (response) {
-            console.log("Data cleaned successfully");
-          },
-          error: function (xhr, status, error) {
-            console.error("Error cleaning data:", error);
-          },
-        });
-      }
-
-      function resetSliderToMidpoint(sliderId) {
-        let slider = $("#" + sliderId);
-        let min = parseFloat(slider.attr("min"));
-        let max = parseFloat(slider.attr("max"));
-        let midpoint = (min + max) / 2;
-        updateSliderValue(sliderId, midpoint);
-      }
-
-      function clearChartData(chart) {
-        chart.data.labels = [];
-        chart.data.datasets.forEach((dataset) => {
-          dataset.data = [];
-        });
-        chart.update();
       }
     </script>
   </body>
