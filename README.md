@@ -28,18 +28,22 @@ The dataset is augmented using techniques such as rotation, flipping, scaling, a
 - **Computer Vision**: Image processing and analysis techniques used for data preprocessing, augmentation, and visualization.
 - **Natural Language Processing (NLP)**: Techniques used for text processing, intent recognition, and dialogue management in the chatbot component.
 
+
 ## Getting Started
 
 To get started with this project, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/Charmingcaiusyd/3Dprinter_Chatbot.git`
-2. Install the required dependencies: `pip install -r requirements.txt`
-3. Prepare the dataset by following the instructions in the `data` directory.
-4. Train the YOLOv8 model using the provided scripts in the `models` directory.
-5. Fine-tune the GPT model on the 3D printing troubleshooting dataset.
-6. Integrate the trained models with the chatbot and knowledge base components.
-7. Launch the platform and interact with the chatbot interface for fault diagnosis and quality control.
+1. Clone the YOLOv8 repository: `git clone https://github.com/Charmingcaiusyd/3dprint_Defects_Detection.git`
+2. Download the 3D print defects dataset from Kaggle: [https://www.kaggle.com/datasets/charmingcaiusyd86186/3d-print-defects](https://www.kaggle.com/datasets/charmingcaiusyd86186/3d-print-defects)
+3. Extract the downloaded dataset and place it directly into the `ultralytics` folder of the cloned repository. Rename the dataset folder to `Dataset`.
+4. Install the required dependencies by following the instructions in the Ultralytics documentation: [https://docs.ultralytics.com/](https://docs.ultralytics.com/)
+5. The dataset is already split into training, testing, and validation sets with a ratio of 90%, 5%, and 5%, respectively. The images and labels are pre-annotated and ready to use.
+6. Run the training script with the pre-configured parameters. Refer to the Ultralytics documentation for detailed instructions on running the training process.
+7. After training, you can use the trained YOLOv8 model for defect detection in 3D printed objects.
+8. Integrate the trained YOLOv8 model with the chatbot and knowledge base components of the 3D printer fault diagnosis and quality control platform.
+9. Launch the platform and interact with the chatbot interface for fault diagnosis and quality control. The project is running at: [https://3dprinter.quest/](https://3dprinter.quest/)
 
+Note: Make sure to follow the Ultralytics documentation closely for any additional setup or configuration steps specific to your environment.
 For detailed instructions and documentation, please refer to the `docs` directory.
 
 ## Contributions
